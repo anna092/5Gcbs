@@ -25,5 +25,5 @@ go get -t
 This repository also contains CBE (Cell Broadcast Entity) simulator written in python. By running that file, we can send a warning message to the CBCF to be forwarded into the AMF. For now, the message is still hardcoded, but in the future, the program will also receive parameter from input to create a dynamic message. 
 To run the program
 ```
-python3 cbe.py
+python3 cbe.py --messageId="id"
 ```
