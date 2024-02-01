@@ -145,8 +145,8 @@ func transfer(data map[string]string) {
 	BinaryDataN2InformationKeyValue := make(map[string]interface{})
 	json.Unmarshal([]byte(BinaryDataN2informationString), &BinaryDataN2InformationKeyValue)
 	BinaryDataN2InformationKeyValue["messageIdentifier"] = data["messageIdentifier"]
-	BinaryDataN2InformationKeyValue["repetitionPeriod"] = "240"
-	BinaryDataN2InformationKeyValue["numberOfBroadcastsRequested"] = "1"
+	BinaryDataN2InformationKeyValue["repetitionPeriod"] = "60"
+	BinaryDataN2InformationKeyValue["numberOfBroadcastsRequested"] = "3"
 	BinaryDataN2InformationKeyValue["dataCodingScheme"] = data["dataCodingScheme"]
 	BinaryDataN2InformationKeyValue["warningMessageContents"] = data["warningMessageContents"]
 	json.Unmarshal(jsonString, &reqData)
