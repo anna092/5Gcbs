@@ -8,7 +8,7 @@ CBCF (Cell Broadcast Centre Function) is a network function in the 5G core netwo
 ## Usage
 1. Clone github repository
 ```
-git clone https://github.com/Joshevanch/CBCF.git
+git clone https://github.com/anna092/5Gcbs.git
 ```
 
 2. Download all the dependency 
