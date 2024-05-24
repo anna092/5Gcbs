@@ -9,7 +9,8 @@ import (
 
 func unsubscribe() {
 	// Specify the URL you want to send the request to
-	url := "http://127.0.0.18:8000/namf-comm/v1/non-ue-n2-messages/subscriptions/"
+	//url := "http://127.0.0.18:8000/namf-comm/v1/non-ue-n2-messages/subscriptions/"
+	url := "http://192.168.56.102:8000/namf-comm/v1/non-ue-n2-messages/subscriptions/"
 	id := flag.String("id", "", "N2 Notify Subscriptions id")
 	flag.Parse()
 	url = url + *id

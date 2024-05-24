@@ -31,13 +31,14 @@ func subscribe() {
 
 		],
 		"n2InformationClass": "PWS",
-		"n2NotifyCallbackUri": "127.0.0.1:8080/notify",
+		"n2NotifyCallbackUri": "192.168.56.102:8000/notify",
 		"nfId": "",
 		"supportedFeatures": ""
 	  }`)
 	json.Unmarshal(jsonString, &subscribe)
 	namfConfiguration := Namf_Communication.NewConfiguration()
-	namfConfiguration.SetBasePath("http://127.0.0.18:8000")
+	//namfConfiguration.SetBasePath("http://127.0.0.18:8000")
+	namfConfiguration.SetBasePath("http://192.168.56.102:8000")
 	apiClient := Namf_Communication.NewAPIClient(namfConfiguration)
 	_, _, _ = apiClient.NonUEN2MessagesSubscriptionsCollectionDocumentApi.NonUeN2InfoSubscribe(context.TODO(), subscribe)
 }

@@ -1,3 +1,4 @@
+
 package main
 
 import (
@@ -24,11 +25,29 @@ type MessageTimestamp struct {
 	DelayCBCF         string    `json:"delayCbcf"`
 }
 
+/*
+type ResponseData struct {
+	Description string `json:"description"`
+	Content     struct {
+		ApplicationJSON struct {
+			Schema struct {
+				Description string `json:"description"`
+				Type        string `json:"type"`
+				Properties  struct {
+					Result string `json:"result"`
+				} `json:"properties"`
+			} `json:"schema"`
+		} `json:"application/json"`
+	} `json:"content"`
+}*/
+
+
 func transfer(data map[string]string) {
 	// Specify the URL you want to send the request to
 
 	// Create the request body
 	var err error
+	taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
 	reqData := models.N2InformationTransferReqData{}
 	message := models.NonUeN2MessageTransferRequest{}
 	jsonString := []byte(`{
@@ -145,7 +164,7 @@ func transfer(data map[string]string) {
 	BinaryDataN2InformationKeyValue := make(map[string]interface{})
 	json.Unmarshal([]byte(BinaryDataN2informationString), &BinaryDataN2InformationKeyValue)
 	BinaryDataN2InformationKeyValue["messageIdentifier"] = data["messageIdentifier"]
-	BinaryDataN2InformationKeyValue["repetitionPeriod"] = "60"
+	BinaryDataN2InformationKeyValue["repetitionPeriod"] = "10"
 	BinaryDataN2InformationKeyValue["numberOfBroadcastsRequested"] = "3"
 	BinaryDataN2InformationKeyValue["dataCodingScheme"] = data["dataCodingScheme"]
 	BinaryDataN2InformationKeyValue["warningMessageContents"] = data["warningMessageContents"]
@@ -186,30 +205,16 @@ func transfer(data map[string]string) {
 	jsonString, err = json.Marshal(message)
 	message.JsonData.N2Information.PwsInfo.SerialNumber = int32(serialNumber)
 	namfConfiguration := Namf_Communication.NewConfiguration()
-	namfConfiguration.SetBasePath("http://127.0.0.18:8000")
+	namfConfiguration.SetBasePath("http://192.168.56.102:8000") 
 	apiClient := Namf_Communication.NewAPIClient(namfConfiguration)
-	taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
-	currentTime := time.Now().In(taiwanTimezone)
-	timeReceived, err := time.Parse("2006-01-02 15:04:05.000 UTC-07:00", data["timeReceived"])
-	timeSentFromCBE, err := time.Parse("2006-01-02 15:04:05.000 UTC-07:00", data["timeSentFromCBE"])
-	fmt.Println("Time Data sent from CBE: ", timeSentFromCBE.Format("2006-01-02 15:04:05.000 UTC-07:00"))
-	fmt.Println("Time Data received: ", timeReceived.Format("2006-01-02 15:04:05.000 UTC-07:00"))
-	fmt.Println("Time Data sent to AMF: ", currentTime.Format("2006-01-02 15:04:05.000 UTC-07:00"))
-	if err != nil {
-		log.Fatal(err)
-	}
 
-	delay := timeReceived.Sub(timeSentFromCBE)
-	messageTimestamp := MessageTimestamp{
-		MessageIdentifier: int32(messageIdentifier),
-		SerialNumber:      int32(serialNumberInteger),
-		CBESentTime:       timeSentFromCBE.UTC(),
-		CBCFReceivedTime:  timeReceived.UTC(),
-		CBCFSentTime:      currentTime.UTC(),
-		DelayCBCF:         delay.String(),
-	}
-	insertToDatabase(message, messageTimestamp)
 	_, _, err = apiClient.NonUEN2MessagesCollectionDocumentApi.NonUeN2MessageTransfer(context.TODO(), message)
+	currentTime := time.Now().In(taiwanTimezone)
+	formattedTime := currentTime.Format("2006-01-02 15:04:05.000000 MST")
+	fmt.Printf("Sent Write Replace Rquest to AMF at %s\n", formattedTime)
+	if err != nil {
+		log.Fatalf("Failed to send HTTP request: %v", err)
+	}
 }
 
 func insertToDatabase(message models.NonUeN2MessageTransferRequest, messageTimestamp MessageTimestamp) {

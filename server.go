@@ -45,7 +45,7 @@ type Area struct {
 }
 
 func main() {
-	http.HandleFunc("/", handleRequest)
+	http.HandleFunc("/EmergencyBroadcastRequest", handleRequest)
 	http.HandleFunc("/notify", handleNotify)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -57,21 +57,29 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	xmlData, err := ioutil.ReadAll(r.Body)
+	taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
+	currentTime := time.Now().In(taiwanTimezone)
+	formattedTime := currentTime.Format("2006-01-02 15:04:05.000000 MST")
+	fmt.Printf("Received Emergency Broadcast Request from CBE at %s\n", formattedTime)
 	if err != nil {
 		http.Error(w, "Error parsing body data", http.StatusBadRequest)
 		return
 	}
-	timeFormat := "2006-01-02 15:04:05.000 UTC-07:00"
-	taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
-	currentTime := time.Now().In(taiwanTimezone)
+	
+
+
+	fmt.Printf("Received XML data\n")
+	/*fmt.Printf("Received XML data: %s\n", string(xmlData))*/
 	var alertData Alert
 	if err := xml.Unmarshal(xmlData, &alertData); err != nil {
 		fmt.Println(err)
 		http.Error(w, "Error parsing XML data", http.StatusBadRequest)
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("XML data received successfully"))
+	
+	/*taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
+	currentTime := time.Now().In(taiwanTimezone)*/
+	
 	data := make(map[string]string)
 	data["serialNumber"] = alertData.Identifier[len(alertData.Identifier)-3:]
 	data["messageType"] = alertData.MsgType
@@ -101,6 +109,7 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	default:
 		data["messageIdentifier"] = "1112"
 	}
+	timeFormat := "2006-01-02 15:04:05.000000 MST"
 	timeSent, err := time.Parse(timeFormat, alertData.Sent)
 	data["warningMessageContents"] = timeSent.Format(timeFormat) + alertData.Info.Headline + "\n" + alertData.Info.Description + "\n" + alertData.Info.Area.AreaDesc
 	data["timeSentFromCBE"] = alertData.Sent
@@ -108,7 +117,28 @@ func handleRequest(w http.ResponseWriter, r *http.Request) {
 	data["timeReceived"] = currentTime.Format(timeFormat)
 	subscribe()
 	transfer(data)
+
+	fmt.Printf("Started distributing the warning message...\n")
+	sendEmergencyBroadcastResponse(w)	
 }
+
+func sendEmergencyBroadcastResponse(w http.ResponseWriter) {
+	responseData := `<response><status>Success</status><description>Emergency Broadcast Received</description></response>`
+	w.Header().Set("Content-Type", "application/xml")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(responseData))
+
+	taiwanTimezone, err := time.LoadLocation("Asia/Taipei")
+	if err != nil {
+		log.Fatalf("Failed to load timezone: %v", err)
+	}
+	currentTime := time.Now().In(taiwanTimezone)
+	formattedTime := currentTime.Format("2006-01-02 15:04:05.000000 MST")
+
+	fmt.Printf("Sent Emergency Broadcast Response to CBE at %s\n", formattedTime)
+
+}
+
 
 func handleNotify(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {

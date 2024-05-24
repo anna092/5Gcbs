@@ -2,6 +2,7 @@ import requests
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 import argparse
+import threading
 
 parser = argparse.ArgumentParser(description='The parameter for the CBS message')
 parser.add_argument('-id', '--messageId', type=int, help='The message ID for serial number', required = True)
@@ -41,7 +42,8 @@ root = ET.fromstring(xml_data)
 current_time_utc = datetime.now(timezone.utc)
 taiwan_timezone = timezone(timedelta(hours=8))
 taiwan_time = current_time_utc.astimezone(taiwan_timezone) 
-formatted_time = taiwan_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' ' + taiwan_time.tzname()
+formatted_time = taiwan_time.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+#formatted_time = taiwan_time.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3] + ' ' + taiwan_time.tzname()
 effective_element = root.find('.//{urn:oasis:names:tc:emergency:cap:1.1}effective')
 if effective_element is not None:
             effective_element.text = formatted_time
@@ -53,6 +55,8 @@ if serialNumber_element is not None:
             serialNumber_element.text = serialNumber_element.text[:-3] + f"{args.messageId:03d}"
 modified_xml_string = ET.tostring(root, encoding='utf-8', method='xml')
 
+
+url = 'http://192.168.56.103:8080/EmergencyBroadcastRequest'
 def send_xml_data(url, xml_data):
     headers = {
         "Content-Type": "application/xml ;charset=utf-8",
@@ -65,10 +69,34 @@ def send_xml_data(url, xml_data):
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return None
+    
+def handle_response(response):
+    cleaned_response = response.text.replace('\n', '').replace('\t', '')
+    print("Received response from CBCF:\n", cleaned_response)
+    #print("Received response from CBCF:", response.text)
 
-url = 'http://127.0.0.1:8080'
+def listen_for_response(url):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            handle_response(response)
+        else:
+            print("Failed to receive response from CBCF")
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+
+
+print("Data send at", formatted_time)
 
 response_content = send_xml_data(url, modified_xml_string)
-print("Data send at", formatted_time)
 if response_content is None:
     print("Failed to send XML data.")
+else:
+    #threading.Thread(target=listen_for_response, args=(url,)).start()
+    print("Received response from CBCF:\n", response_content)
+    
+    current_time_utc = datetime.now(timezone.utc)
+    taiwan_timezone = timezone(timedelta(hours=8))
+    taiwan_time = current_time_utc.astimezone(taiwan_timezone) 
+    formatted_time = taiwan_time.strftime('%Y-%m-%d %H:%M:%S.%f %Z')
+    print("Emergency Broadcast Response received at", formatted_time)
