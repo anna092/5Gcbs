@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 
+=======
+>>>>>>> b762fddca16447050b3f338d5e6b9cd6d78d7bd3
 package main
 
 import (
