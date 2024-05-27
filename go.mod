@@ -5,10 +5,7 @@ go 1.20
 require (
 	github.com/free5gc/openapi v1.0.6
 	go.mongodb.org/mongo-driver v1.11.7
-<<<<<<< HEAD
 	golang.org/x/net v0.7.0
-=======
->>>>>>> b762fddca16447050b3f338d5e6b9cd6d78d7bd3
 )
 
 require (
@@ -25,10 +22,6 @@ require (
 	github.com/xdg-go/stringprep v1.0.3 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/crypto v0.0.0-20220622213112-05595931fe9d // indirect
-<<<<<<< HEAD
-=======
-	golang.org/x/net v0.7.0 // indirect
->>>>>>> b762fddca16447050b3f338d5e6b9cd6d78d7bd3
 	golang.org/x/oauth2 v0.0.0-20210810183815-faf39c7919d5 // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.7.0 // indirect
